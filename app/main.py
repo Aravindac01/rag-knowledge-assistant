@@ -1,8 +1,10 @@
 import os
 import tempfile
 import time
+from pathlib import Path
 
 from fastapi import FastAPI, File, UploadFile
+from fastapi.responses import HTMLResponse
 
 from app.ingest import ingest_file
 from app.rag_chain import generate_answer
@@ -10,6 +12,12 @@ from app.schemas import IngestResponse, QueryRequest, QueryResponse, SourceChunk
 from app.search import hybrid_search
 
 app = FastAPI(title="RAG Knowledge Assistant", version="0.1.0")
+
+
+@app.get("/", response_class=HTMLResponse)
+def serve_ui():
+    html_path = Path(__file__).resolve().parent.parent / "static" / "index.html"
+    return html_path.read_text()
 
 
 @app.get("/health")
