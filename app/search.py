@@ -7,12 +7,26 @@ from rank_bm25 import BM25Okapi
 from app import config
 from app.ingest import embed_texts, qdrant_client
 
+_bm25_cache = {"mtime": None, "store": None, "index": None}
 
-def _load_store() -> List[Dict]:
+
+def _load_store_and_index():
     path = Path(config.CHUNKS_STORE_PATH)
-    if path.exists():
-        return json.loads(path.read_text())
-    return []
+    if not path.exists():
+        return [], None
+
+    mtime = path.stat().st_mtime
+    if _bm25_cache["mtime"] == mtime:
+        return _bm25_cache["store"], _bm25_cache["index"]
+
+    store = json.loads(path.read_text())
+    corpus = [record["text"].split() for record in store]
+    index = BM25Okapi(corpus) if corpus else None
+
+    _bm25_cache["mtime"] = mtime
+    _bm25_cache["store"] = store
+    _bm25_cache["index"] = index
+    return store, index
 
 
 def vector_search(query: str, top_k: int = 10) -> List[Dict]:
@@ -32,12 +46,10 @@ def vector_search(query: str, top_k: int = 10) -> List[Dict]:
 
 
 def bm25_search(query: str, top_k: int = 10) -> List[Dict]:
-    store = _load_store()
-    if not store:
+    store, index = _load_store_and_index()
+    if not store or index is None:
         return []
-    corpus = [record["text"].split() for record in store]
-    bm25 = BM25Okapi(corpus)
-    scores = bm25.get_scores(query.split())
+    scores = index.get_scores(query.split())
     ranked = sorted(zip(store, scores), key=lambda pair: pair[1], reverse=True)[:top_k]
     return [
         {"chunk_id": r["chunk_id"], "text": r["text"], "source": r["source"], "score": float(s)}
