@@ -1,0 +1,22 @@
+[
+  {
+    "question": "What company does the candidate currently work at?",
+    "expected_keywords": ["Mankind"]
+  },
+  {
+    "question": "By what percentage did the candidate improve fraud detection accuracy at Accenture?",
+    "expected_keywords": ["30"]
+  },
+  {
+    "question": "What vector database is used in the candidate's RAG-based project?",
+    "expected_keywords": ["FAISS"]
+  },
+  {
+    "question": "What is the candidate's educational background?",
+    "expected_keywords": ["Master", "Computer Science"]
+  },
+  {
+    "question": "What CI/CD tools does the candidate have experience with?",
+    "expected_keywords": ["GitHub Actions"]
+  }
+]
